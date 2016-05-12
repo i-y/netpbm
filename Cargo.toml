@@ -1,0 +1,6 @@
+[package]
+name = "netbpm"
+version = "0.0.1"
+authors = ["ian"]
+
+[dependencies]
