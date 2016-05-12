@@ -6,6 +6,10 @@ use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 
+// The following constants are designed to test three case:
+//   - The width is less than a byte (8)
+//   - The width is greater than a byte but not a multiple of 8.
+//   - The width is greater than a byte and is a multiple of 8.
 
 // 6 10
 const J:[u8;60] = [0,0,0,0,1,0,
@@ -44,43 +48,6 @@ const H:[u8;224] = [1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,
                     1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,
                     1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1];
 
-// 6 10
-const J_BYTE:[u8;60] = [0,0,0,0,255,0,
-                       0,0,0,0,255,0,
-                       0,0,0,0,255,0,
-                       0,0,0,0,255,0,
-                       0,0,0,0,255,0,
-                       0,0,0,0,255,0,
-                       255,0,0,0,255,0,
-                       0,255,255,255,0,0,
-                       0,0,0,0,0,0,
-                       0,0,0,0,0,0];
-// 10 9
-const F_BYTE:[u8;90] = [255,255,255,255,255,255,255,255,255,255,
-                        255,255,255,255,255,255,255,255,255,255,
-                        255,255,0,0,0,0,0,0,0,0,
-                        255,255,0,0,0,0,0,0,0,0,
-                        255,255,255,255,255,255,0,0,0,0,
-                        255,255,255,255,255,255,0,0,0,0,
-                        255,255,0,0,0,0,0,0,0,0,
-                        255,255,0,0,0,0,0,0,0,0,
-                        255,255,0,0,0,0,0,0,0,0];
-// 16, 14
-const H_BYTE:[u8;224] = [255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,
-                         255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,
-                         255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,
-                         255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,
-                         255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,
-                         255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-                         255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-                         255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-                         255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-                         255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,
-                         255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,
-                         255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,
-                         255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255,
-                         255,255,255,255,0,0,0,0,0,0,0,0,255,255,255,255];
-
 pub fn test_arrs(size:u8, a:&[u8], b:&[u8]) -> bool {
     let mut ret = true;
     for i in 0..size {
@@ -101,7 +68,7 @@ fn pbm_j_ascii() {
     let image = decoder.load().unwrap();
     assert_eq!(6, image.width);
     assert_eq!(10, image.height);
-    assert!(test_arrs(60, &image.dat, &J_BYTE));
+    assert!(test_arrs(60, &image.dat, &J));
     let _ = fs::remove_file("test_0a.pbm");
 }
 
@@ -117,7 +84,7 @@ fn pbm_j_binary() {
     let image = decoder.load().unwrap();
     assert_eq!(6, image.width);
     assert_eq!(10, image.height);
-    assert!(test_arrs(60, &image.dat, &J_BYTE));
+    assert!(test_arrs(60, &image.dat, &J));
     let _ = fs::remove_file("test_0b.pbm");
 }
 
@@ -133,7 +100,7 @@ fn pbm_f_ascii() {
     let image = decoder.load().unwrap();
     assert_eq!(10, image.width);
     assert_eq!(9, image.height);
-    assert!(test_arrs(90, &image.dat, &F_BYTE));
+    assert!(test_arrs(90, &image.dat, &F));
     let _ = fs::remove_file("test_1a.pbm");
 }
 
@@ -149,7 +116,7 @@ fn pbm_f_binary() {
     let image = decoder.load().unwrap();
     assert_eq!(10, image.width);
     assert_eq!(9, image.height);
-    assert!(test_arrs(90, &image.dat, &F_BYTE));
+    assert!(test_arrs(90, &image.dat, &F));
     let _ = fs::remove_file("test_1b.pbm");
 }
 
@@ -165,7 +132,7 @@ fn pbm_h_ascii() {
     let image = decoder.load().unwrap();
     assert_eq!(16, image.width);
     assert_eq!(14, image.height);
-    assert!(test_arrs(224, &image.dat, &H_BYTE));
+    assert!(test_arrs(224, &image.dat, &H));
     let _ = fs::remove_file("test_2a.pbm");
 }
 
@@ -181,7 +148,7 @@ fn pbm_h_binary() {
     let image = decoder.load().unwrap();
     assert_eq!(16, image.width);
     assert_eq!(14, image.height);
-    assert!(test_arrs(224, &image.dat, &H_BYTE));
+    assert!(test_arrs(224, &image.dat, &H));
     let _ = fs::remove_file("test_2b.pbm");
 }
 
@@ -204,7 +171,7 @@ fn pbm_ascii_commented() {
     let image = decoder.load().unwrap();
     assert_eq!(2, image.width);
     assert_eq!(2, image.height);
-    let dat = [255,0,0,255];
+    let dat = [1,0,0,1];
     assert!(test_arrs(4, &image.dat, &dat));
     let _ = fs::remove_file("test_4.pbm");
 }

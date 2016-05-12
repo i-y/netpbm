@@ -309,7 +309,7 @@ impl PBMDecoder {
             if *x == 48 {
                 vals.push(0);
             } else if *x == 49 {
-                vals.push(255);
+                vals.push(1);
             }
         }
         vals
@@ -327,11 +327,8 @@ impl PBMDecoder {
         for x in inpt {
             for i in 0..8 {
                 let mv:u8 = 8 - i;
-                let mut v:u8 = (x & masks[i as usize]) >> (mv - 1);
+                let v:u8 = (x & masks[i as usize]) >> (mv - 1);
                 if ind < width || mv > padding {
-                    if v > 0 {
-                        v = 255;
-                    }
                     vals.push(v);
                 }
             }
