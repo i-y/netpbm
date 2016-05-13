@@ -86,7 +86,7 @@ impl PBMEncoder {
     ///
     /// Aside from the regular errors associated with file access this function will throw an
     /// error if the user attempts to save an image more than 70 pixels wide in ASCII mode.
-    pub fn save(&mut self, dat: &[u8], height: u8, width: u8, mode: Mode) -> Result<(), io::Error> {
+    pub fn save(&mut self, dat: &[u8], height: u32, width: u32, mode: Mode) -> Result<(), io::Error> {
         Ok(
             match mode {
                 Mode::ASCII => try!(self.save_ascii(dat, height, width)),
@@ -116,7 +116,7 @@ impl PBMEncoder {
     /// P1 = file's magic number
     /// # foo = comment
     /// num num = width and height (in that order)
-    fn save_ascii(&mut self, dat: &[u8], width: u8, height: u8) -> Result<(), io::Error> {
+    fn save_ascii(&mut self, dat: &[u8], width: u32, height: u32) -> Result<(), io::Error> {
         // In theory we can ignore this with no downside but it would no longer be conformant.
         if width > 70 {
             return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Width can not be greater than 70 for ascii pbm files."));
@@ -161,7 +161,7 @@ impl PBMEncoder {
     /// 0111 0000
     /// 0000 0000
     /// 0000 0000
-    fn save_binary(&mut self, dat: &[u8], width: u8, height: u8) -> Result<(), io::Error> {
+    fn save_binary(&mut self, dat: &[u8], width: u32, height: u32) -> Result<(), io::Error> {
         // write the header
         try!(self.f.write_fmt(format_args!("P4\n{} {}\n",width,height)));
         // If our width is not a multiple of 8 we will need to add some "don't care" bits to
@@ -266,8 +266,8 @@ impl PBMDecoder {
             return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Input file is not a pbm file."));
         }
         // Find the width and height
-        let mut width:u8 = 0;
-        let mut height:u8 = 0;
+        let mut width:u32 = 0;
+        let mut height:u32 = 0;
         let mut ind = 0; // tracks if we're reading from width or height
         let mut read = false; // used to skip comment sections
         let mut data_start = 0;
@@ -284,9 +284,9 @@ impl PBMDecoder {
             if read == true {
                 if all_data[i] > 47 && all_data[i] < 58 {
                     if ind == 0 {
-                        width = (width * 10) + (all_data[i] - 48);
+                        width = (width * 10) + (all_data[i] - 48) as u32;
                     } else if ind == 1 {
-                        height = (height * 10) + (all_data[i] - 48);
+                        height = (height * 10) + (all_data[i] - 48) as u32;
                     }
                 } else if all_data[i] == 32 { // space
                     ind += 1;
@@ -296,8 +296,12 @@ impl PBMDecoder {
             }
         }
         match all_data[1] {
-            49 => Ok(Image{width:width, height:height, dat:self.load_ascii(&all_data[data_start..all_data.len()]), depth: BitDepth::EIGHT}),
-            52 => Ok(Image{width:width, height:height, dat:self.load_binary(&all_data[data_start..all_data.len()], width), depth: BitDepth::EIGHT}),
+            49 => Ok(Image{width:width, height:height,
+                           dat:self.load_ascii(&all_data[data_start..all_data.len()]),
+                           depth: BitDepth::EIGHT}),
+            52 => Ok(Image{width:width, height:height,
+                           dat:self.load_binary(&all_data[data_start..all_data.len()], width),
+                           depth: BitDepth::EIGHT}),
             _ => Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Unexpected Parsing Error.")),
         }
     }
@@ -316,12 +320,12 @@ impl PBMDecoder {
     }
 
     /// Load image data stored in binary format.
-    fn load_binary(&self, inpt: &[u8], width: u8) -> Vec<u8> {
+    fn load_binary(&self, inpt: &[u8], width: u32) -> Vec<u8> {
         let mut vals:Vec<u8> = vec![];
         // Keep track of what index we're on, counted in bits.
         let mut ind = 8;
         // How much padding (if any) exists on bytes at the end of a row.
-        let padding = (8 - (width % 8)) % 8;
+        let padding = ((8 - (width % 8)) % 8) as u8;
         // Use a mask to pick up individual bits.
         let masks:[u8;8] = [128, 64, 32, 16, 8, 4, 2, 1];
         for x in inpt {

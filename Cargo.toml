@@ -1,6 +1,6 @@
 [package]
 name = "netbpm"
-version = "0.1.1"
-authors = ["ian"]
+version = "0.1.2"
+authors = ["ian yocum"]
 
 [dependencies]

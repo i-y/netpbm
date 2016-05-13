@@ -9,8 +9,8 @@ pub enum BitDepth {
 }
 
 pub struct Image {
-    pub width:u8,
-    pub height:u8,
+    pub width:u32,
+    pub height:u32,
     pub dat: Vec<u8>,
     pub depth: BitDepth,
 }
