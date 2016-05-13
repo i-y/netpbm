@@ -48,7 +48,7 @@ const H:[u8;224] = [1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,
                     1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,
                     1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1];
 
-pub fn test_arrs(size:u8, a:&[u8], b:&[u8]) -> bool {
+pub fn test_arrs(size:u32, a:&[u8], b:&[u8]) -> bool {
     let mut ret = true;
     for i in 0..size {
         ret = ret && (a[i as usize] == b[i as usize]);

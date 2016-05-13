@@ -15,10 +15,10 @@ project file formats in Rust.
 # Implemented Features
 
 * Portable BitMap (pbm) files.
+* Portable GrayMap (pgm) files.
 
 # Features To Be Implemented
 
-* Portable GrayMap (pgm) files.
 * Portable PixMap (ppm) files.
 * Portable Arbitrary Map (pam) files.
 
@@ -37,3 +37,9 @@ This package is only interested in providing ways to load and save images using
 the four Netpbm file formats. The actual Netpbm package has more than 300 tools
 for doing work with image data. This is outside the scope of this particular
 project.
+
+#### Arbitrary bit depth:
+The standard says that pgm files can specify any bit depth up to 65535 (the max
+size for a u16). This library is set to read any value less than 256 as 255 and
+any other value as 65535. This may mean that data saved under other bit depths
+will be scaled incorrectly.

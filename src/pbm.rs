@@ -273,7 +273,7 @@ impl PBMDecoder {
             Mode::BINARY => Ok(Image{width:header.width, height:header.height,
                            dat:self.load_binary(&all_data[header.dat_start..all_data.len()], header.width),
                            depth: header.depth})
-            }
+        }
     }
 
     /// Load image data stored in ASCII format.
