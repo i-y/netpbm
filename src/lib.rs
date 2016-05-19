@@ -17,7 +17,9 @@ pub struct Image {
     pub depth: BitDepth,
 }
 
-pub mod pbm;
 mod tools;
 #[cfg(test)]
 mod header_tests;
+
+pub mod pbm;
+pub mod pgm;
