@@ -58,11 +58,39 @@ impl PGMEncoder {
         }
 
         // track if we need to insert a new line character at the end of a row.
-        let mut nl = 1;
+        //let mut nl = 1;
         // track the number of characters in the line.
         let mut counter = 0;
         // write the actual image data.
-        for val in dat {
+        /*
+        0 0 1 1 2 2
+        3 3 4 4 5 5
+        6 6 7 7 8 8
+        */
+        for i in 0..height {
+            for j in 0..width {
+                let val:u16 = match depth {
+                    BitDepth::EIGHT => dat[((i * width) + j) as usize] as u16,
+                    BitDepth::SIXTEEN => {
+                        let ind:usize = (((i * width) + j) * 2) as usize;
+                        ((dat[ind] as u16) << 8) + dat[ind] as u16
+                    },
+                };
+                let v = val.to_string();
+                counter = counter + v.len();
+                println!("{}, {}", val, v);
+                if counter > 70 {
+                    return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Width can not be greater than 70 characters for ascii pgm files."));
+                }
+                try!(self.f.write_all(&v.into_bytes()));
+                if j < width-1 {
+                    try!(self.f.write_all(b" "));
+                }
+            }
+            counter = 0;
+            try!(self.f.write_all(b"\n"));
+        }
+        /*for val in dat {
             let v = val.to_string();
             counter = counter + v.len();
             if counter > 70 {
@@ -77,7 +105,7 @@ impl PGMEncoder {
                 nl = 1;
                 counter = 0;
             }
-        }
+        }*/
         Ok(())
     }
 
