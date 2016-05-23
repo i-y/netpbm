@@ -21,9 +21,9 @@
 use std::io;
 use std::fs::File;
 use std::io::prelude::*;
+use tools::{get_header, ImageType};
 use Mode;
 use Image;
-use BitDepth;
 
 /// Encodes an image as a pbm file.
 pub struct PBMEncoder {
@@ -259,51 +259,21 @@ impl PBMDecoder {
     pub fn load(&mut self) ->  Result<Image, io::Error> {
         let mut all_data:Vec<u8> = vec![];
         try!(self.f.read_to_end(&mut all_data));
-        // check the magic number. Should be P1 or P4
-        if all_data[0] != 80 {
-            return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Input file is not a netbpm file."));
-        } else if all_data[1] != 49 && all_data[1] != 52 {
+        let header = try!(get_header(&all_data));
+
+        // check the magic number.
+        if header.image_type != ImageType::PBM {
             return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Input file is not a pbm file."));
         }
-        // Find the width and height
-        let mut width:u32 = 0;
-        let mut height:u32 = 0;
-        let mut ind = 0; // tracks if we're reading from width or height
-        let mut read = false; // used to skip comment sections
-        let mut data_start = 0;
-        for i in 2..all_data.len() {
-            if all_data[i] == 10 { // newline
-                read = true;
-                if ind > 0 {
-                    data_start = i + 1;
-                    break;
-                }
-            } else if all_data[i] == 35 { // # character, start of comment section.
-                read = false;
+
+        match header.mode {
+            Mode::ASCII => Ok(Image{width:header.width, height:header.height,
+                           dat:self.load_ascii(&all_data[header.dat_start..all_data.len()]),
+                           depth: header.depth}),
+            Mode::BINARY => Ok(Image{width:header.width, height:header.height,
+                           dat:self.load_binary(&all_data[header.dat_start..all_data.len()], header.width),
+                           depth: header.depth})
             }
-            if read == true {
-                if all_data[i] > 47 && all_data[i] < 58 {
-                    if ind == 0 {
-                        width = (width * 10) + (all_data[i] - 48) as u32;
-                    } else if ind == 1 {
-                        height = (height * 10) + (all_data[i] - 48) as u32;
-                    }
-                } else if all_data[i] == 32 { // space
-                    ind += 1;
-                } else if all_data[i] != 10 {
-                    return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Unexpected character in file header."));
-                }
-            }
-        }
-        match all_data[1] {
-            49 => Ok(Image{width:width, height:height,
-                           dat:self.load_ascii(&all_data[data_start..all_data.len()]),
-                           depth: BitDepth::EIGHT}),
-            52 => Ok(Image{width:width, height:height,
-                           dat:self.load_binary(&all_data[data_start..all_data.len()], width),
-                           depth: BitDepth::EIGHT}),
-            _ => Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Unexpected Parsing Error.")),
-        }
     }
 
     /// Load image data stored in ASCII format.

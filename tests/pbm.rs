@@ -197,7 +197,7 @@ fn pbm_not_pbm_file() {
     let dec_result = decoder.load();
     match dec_result {
         Ok(_) => assert!(false),
-        Err(e) => assert_eq!(e.description(),"Input file is not a pbm file."),
+        Err(e) => assert_eq!(e.description(),"Input file is not a netbpm file."),
     }
     let _ = fs::remove_file("test_6.pbm");
 }
@@ -210,7 +210,7 @@ fn pbm_bad_header() {
     let dec_result = decoder.load();
     match dec_result {
         Ok(_) => assert!(false),
-        Err(e) => assert_eq!(e.description(),"Unexpected character in file header."),
+        Err(e) => assert_eq!(e.description(),"Unexpected character in file header. Character: 98"),
     }
     let _ = fs::remove_file("test_7.pbm");
 }

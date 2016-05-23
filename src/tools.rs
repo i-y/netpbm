@@ -65,14 +65,14 @@ pub fn get_header(dat:&Vec<u8>) ->  Result<ImageHeader, io::Error> {
 
     // values we'll use to keep track of where in the header we are.
     let mut data_start:usize = 0; // The index where the pixel data starts.
-    let mut header_part = -1;      // What part of the header we're reading.
+    let mut header_part = -1;     // What part of the header we're reading.
                                   //         0 = width, 1 = height, 2 = bit size
     let mut skip = false;         // Used to skip comments.
 
     // Read in our actual data.
     for i in 2..dat.len() {
         data_start += 1;
-        if skip && dat[i] == 10 { // coments end only at a LF (newline)
+        if skip && dat[i] == 10 { // comments end only at a LF (newline)
             skip = false;
         } else if !skip {
             if dat[i] == b'#' { // start of comments
@@ -97,6 +97,10 @@ pub fn get_header(dat:&Vec<u8>) ->  Result<ImageHeader, io::Error> {
             }
         }
     }
+
+    // Move the data start to the point after the last number read in the header. Increment by
+    // two to discard the white space following the end of the header.
+    data_start += 2;
 
     let bits = if bit_size > 255 {
         BitDepth::SIXTEEN
