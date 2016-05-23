@@ -3,6 +3,7 @@ pub enum Mode {
     BINARY,
 }
 
+#[derive(PartialEq, Eq, Debug)]
 pub enum BitDepth {
     EIGHT,
     SIXTEEN,
@@ -16,3 +17,4 @@ pub struct Image {
 }
 
 pub mod pbm;
+mod tools;
