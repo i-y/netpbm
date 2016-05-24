@@ -37,7 +37,7 @@ fn is_number(inpt: u8) -> bool {
 /// newline.
 pub fn get_header(dat:&Vec<u8>) ->  Result<ImageHeader, io::Error> {
 
-    // Test the the magic number is valid
+    // Test that the magic number is valid
     if dat[0] != 80 ||  dat[1] < 49 || dat[1] > 55 {
         return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Input file is not a netbpm file."));
     }

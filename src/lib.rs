@@ -1,3 +1,4 @@
+#[derive(PartialEq, Eq, Debug)]
 pub enum Mode {
     ASCII,
     BINARY,
@@ -18,3 +19,5 @@ pub struct Image {
 
 pub mod pbm;
 mod tools;
+#[cfg(test)]
+mod header_tests;
