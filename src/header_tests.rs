@@ -102,3 +102,87 @@ fn read_pbm_header_commented_mid_dim() {
     assert_eq!(header.depth, BitDepth::EIGHT);
     assert_eq!(header.mode, Mode::ASCII);
 }
+
+#[test]
+fn read_pgm_header_ascii_eight() {
+    let dat:Vec<u8> = vec![b'P', b'2', 10, b'6', b' ', b'1', b'0', 10, b'2', b'5', b'5', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 12);
+    assert_eq!(header.image_type, ImageType::PGM);
+    assert_eq!(header.depth, BitDepth::EIGHT);
+    assert_eq!(header.mode, Mode::ASCII);
+}
+
+#[test]
+fn read_pgm_header_ascii_sixteen() {
+    let dat:Vec<u8> = vec![b'P', b'2', 10, b'6', b' ', b'1', b'0', 10, b'6', b'5', b'5', b'3', b'5', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 14);
+    assert_eq!(header.image_type, ImageType::PGM);
+    assert_eq!(header.depth, BitDepth::SIXTEEN);
+    assert_eq!(header.mode, Mode::ASCII);
+}
+
+#[test]
+fn read_pgm_header_binary_eight() {
+    let dat:Vec<u8> = vec![b'P', b'5', 10, b'6', b' ', b'1', b'0', 10, b'2', b'5', b'5', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 12);
+    assert_eq!(header.image_type, ImageType::PGM);
+    assert_eq!(header.depth, BitDepth::EIGHT);
+    assert_eq!(header.mode, Mode::BINARY);
+}
+
+#[test]
+fn read_pgm_header_binary_sixteen() {
+    let dat:Vec<u8> = vec![b'P', b'5', 10, b'6', b' ', b'1', b'0', 10, b'6', b'5', b'5', b'3', b'5', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 14);
+    assert_eq!(header.image_type, ImageType::PGM);
+    assert_eq!(header.depth, BitDepth::SIXTEEN);
+    assert_eq!(header.mode, Mode::BINARY);
+}
+
+#[test]
+fn read_pgm_header_eight_sub_255() {
+    let dat:Vec<u8> = vec![b'P', b'5', 10, b'6', b' ', b'1', b'0', 10, b'1', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 10);
+    assert_eq!(header.image_type, ImageType::PGM);
+    assert_eq!(header.depth, BitDepth::EIGHT);
+    assert_eq!(header.mode, Mode::BINARY);
+}
+
+#[test]
+fn read_pgm_header_sixteen_sub_65535() {
+    let dat:Vec<u8> = vec![b'P', b'2', 10, b'6', b' ', b'1', b'0', 10, b'2', b'5', b'6', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 12);
+    assert_eq!(header.image_type, ImageType::PGM);
+    assert_eq!(header.depth, BitDepth::SIXTEEN);
+    assert_eq!(header.mode, Mode::ASCII);
+}
+
+#[test]
+fn read_pgm_header_ascii_eight_commented() {
+    let dat:Vec<u8> = vec![b'P', b'2', 10, b'6', b' ', b'1', b'0', 10, b'#', b'C', b'o', b'm', b'm', b'e', b'n', b't', 10, b'2', b'5', b'5', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 21);
+    assert_eq!(header.image_type, ImageType::PGM);
+    assert_eq!(header.depth, BitDepth::EIGHT);
+    assert_eq!(header.mode, Mode::ASCII);
+}
