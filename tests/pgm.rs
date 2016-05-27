@@ -1,10 +1,8 @@
 extern crate netbpm;
-use netbpm::pgm::PGMEncoder;
+use netbpm::pgm::{PGMEncoder,PGMDecoder};
 use netbpm::{Mode,BitDepth};
 use std::fs;
 use std::error::Error;
-use std::fs::File;
-use std::io::prelude::*;
 
 // 6 10
 const J:[u8;60] = [255,255,255,255,0,255,
@@ -98,7 +96,13 @@ const LONG_GRAD_DOUBLE:[u8;1200] = [255,255,255,255,255,255,255,255,255,255,   2
                             255,255,255,255,255,255,255,255,255,255,   200,200,200,200,200,200,200,200,200,200,   150,150,150,150,150,150,150,150,150,150,   100,100,100,100,100,100,100,100,100,100,   50,50,50,50,50,50,50,50,50,50,   0,0,0,0,0,0,0,0,0,0];
 
 
-
+pub fn test_arrs(size:u32, a:&[u8], b:&[u8]) -> bool {
+    let mut ret = true;
+    for i in 0..size {
+        ret = ret && (a[i as usize] == b[i as usize]);
+    }
+    ret
+}
 
 
 #[test]
@@ -109,6 +113,12 @@ fn pgm_j_single_ascii() {
         Ok(()) => assert!(true),
         Err(_) => assert!(false),
     }
+    let mut decoder = PGMDecoder::new("test_0a.pgm");
+    let image = decoder.load().unwrap();
+    assert_eq!(6, image.width);
+    assert_eq!(10, image.height);
+    assert_eq!(BitDepth::EIGHT, image.depth);
+    assert!(test_arrs(60, &image.dat, &J));
     let _ = fs::remove_file("test_0a.pgm");
 }
 
@@ -120,6 +130,12 @@ fn pgm_j_single_binary() {
         Ok(()) => assert!(true),
         Err(_) => assert!(false),
     }
+    let mut decoder = PGMDecoder::new("test_0b.pgm");
+    let image = decoder.load().unwrap();
+    assert_eq!(6, image.width);
+    assert_eq!(10, image.height);
+    assert_eq!(BitDepth::EIGHT, image.depth);
+    assert!(test_arrs(60, &image.dat, &J));
     let _ = fs::remove_file("test_0b.pgm");
 }
 
@@ -131,6 +147,12 @@ fn pgm_j_double_ascii() {
         Ok(()) => assert!(true),
         Err(_) => assert!(false),
     }
+    let mut decoder = PGMDecoder::new("test_1a.pgm");
+    let image = decoder.load().unwrap();
+    assert_eq!(6, image.width);
+    assert_eq!(10, image.height);
+    assert_eq!(BitDepth::SIXTEEN, image.depth);
+    assert!(test_arrs(120, &image.dat, &J_DOUBLE));
     let _ = fs::remove_file("test_1a.pgm");
 }
 
@@ -142,6 +164,12 @@ fn pgm_j_double_binary() {
         Ok(()) => assert!(true),
         Err(_) => assert!(false),
     }
+    let mut decoder = PGMDecoder::new("test_1b.pgm");
+    let image = decoder.load().unwrap();
+    assert_eq!(6, image.width);
+    assert_eq!(10, image.height);
+    assert_eq!(BitDepth::SIXTEEN, image.depth);
+    assert!(test_arrs(120, &image.dat, &J_DOUBLE));
     let _ = fs::remove_file("test_1b.pgm");
 }
 
@@ -153,6 +181,12 @@ fn pgm_grad_single_ascii() {
         Ok(()) => assert!(true),
         Err(_) => assert!(false),
     }
+    let mut decoder = PGMDecoder::new("test_2a.pgm");
+    let image = decoder.load().unwrap();
+    assert_eq!(12, image.width);
+    assert_eq!(10, image.height);
+    assert_eq!(BitDepth::EIGHT, image.depth);
+    assert!(test_arrs(120, &image.dat, &GRAD));
     let _ = fs::remove_file("test_2a.pgm");
 }
 
@@ -164,6 +198,12 @@ fn pgm_grad_single_binary() {
         Ok(()) => assert!(true),
         Err(_) => assert!(false),
     }
+    let mut decoder = PGMDecoder::new("test_2b.pgm");
+    let image = decoder.load().unwrap();
+    assert_eq!(12, image.width);
+    assert_eq!(10, image.height);
+    assert_eq!(BitDepth::EIGHT, image.depth);
+    assert!(test_arrs(120, &image.dat, &GRAD));
     let _ = fs::remove_file("test_2b.pgm");
 }
 
@@ -175,6 +215,12 @@ fn pgm_grad_double_ascii() {
         Ok(()) => assert!(true),
         Err(_) => assert!(false),
     }
+    let mut decoder = PGMDecoder::new("test_3a.pgm");
+    let image = decoder.load().unwrap();
+    assert_eq!(12, image.width);
+    assert_eq!(10, image.height);
+    assert_eq!(BitDepth::SIXTEEN, image.depth);
+    assert!(test_arrs(240, &image.dat, &GRAD_DOUBLE));
     let _ = fs::remove_file("test_3a.pgm");
 }
 
@@ -186,6 +232,12 @@ fn pgm_grad_double_binary() {
         Ok(()) => assert!(true),
         Err(_) => assert!(false),
     }
+    let mut decoder = PGMDecoder::new("test_3b.pgm");
+    let image = decoder.load().unwrap();
+    assert_eq!(12, image.width);
+    assert_eq!(10, image.height);
+    assert_eq!(BitDepth::SIXTEEN, image.depth);
+    assert!(test_arrs(240, &image.dat, &GRAD_DOUBLE));
     let _ = fs::remove_file("test_3b.pgm");
 }
 
@@ -208,6 +260,12 @@ fn pgm_long_grad_single_binary() {
         Ok(()) => assert!(true),
         Err(_) => assert!(false),
     }
+    let mut decoder = PGMDecoder::new("test_4b.pgm");
+    let image = decoder.load().unwrap();
+    assert_eq!(30, image.width);
+    assert_eq!(20, image.height);
+    assert_eq!(BitDepth::EIGHT, image.depth);
+    assert!(test_arrs(600, &image.dat, &LONG_GRAD));
     let _ = fs::remove_file("test_4b.pgm");
 }
 
@@ -219,5 +277,11 @@ fn pgm_long_grad_double_binary() {
         Ok(()) => assert!(true),
         Err(_) => assert!(false),
     }
+    let mut decoder = PGMDecoder::new("test_5b.pgm");
+    let image = decoder.load().unwrap();
+    assert_eq!(30, image.width);
+    assert_eq!(20, image.height);
+    assert_eq!(BitDepth::SIXTEEN, image.depth);
+    assert!(test_arrs(1200, &image.dat, &LONG_GRAD_DOUBLE));
     let _ = fs::remove_file("test_5b.pgm");
 }

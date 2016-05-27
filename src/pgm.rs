@@ -1,6 +1,7 @@
 use std::io;
 use std::fs::File;
 use std::io::prelude::*;
+use tools::{get_header, ImageType};
 use Mode;
 use Image;
 use BitDepth;
@@ -12,9 +13,9 @@ pub struct PGMEncoder {
 }
 
 /// Decodes an image in the pgm format.
-/*pub struct PGMDecoder {
+pub struct PGMDecoder {
     f: File,
-}*/
+}
 
 impl PGMEncoder {
     /// Create a new `PGMEncoder`
@@ -62,11 +63,6 @@ impl PGMEncoder {
         // track the number of characters in the line.
         let mut counter = 0;
         // write the actual image data.
-        /*
-        0 0 1 1 2 2
-        3 3 4 4 5 5
-        6 6 7 7 8 8
-        */
         for i in 0..height {
             for j in 0..width {
                 let val:u16 = match depth {
@@ -78,7 +74,6 @@ impl PGMEncoder {
                 };
                 let v = val.to_string();
                 counter = counter + v.len();
-                println!("{}, {}", val, v);
                 if counter > 70 {
                     return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Width can not be greater than 70 characters for ascii pgm files."));
                 }
@@ -90,22 +85,7 @@ impl PGMEncoder {
             counter = 0;
             try!(self.f.write_all(b"\n"));
         }
-        /*for val in dat {
-            let v = val.to_string();
-            counter = counter + v.len();
-            if counter > 70 {
-                return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Width can not be greater than 70 characters for ascii pgm files."));
-            }
-            try!(self.f.write_all(&v.into_bytes()));
-            if nl < width {
-                try!(self.f.write_all(b" "));
-                nl += 1;
-            } else {
-                try!(self.f.write_all(b"\n"));
-                nl = 1;
-                counter = 0;
-            }
-        }*/
+
         Ok(())
     }
 
@@ -119,5 +99,96 @@ impl PGMEncoder {
         // write the image data
         try!(self.f.write_all(dat));
         Ok(())
+    }
+}
+
+impl PGMDecoder {
+    /// Create a new `PGMDecoder`
+    ///
+    /// Creates a new `PGMDecoder` that reads from the specified file. The file extension does not
+    /// matter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::fs;
+    /// # use std::fs::File;
+    /// use netbpm::pgm::PGMDecoder;
+    ///
+    /// # let _ = File::create("saved_file.pgm");
+    /// let decoder = PGMDecoder::new("saved_file.pgm");
+    ///  # let _ = fs::remove_file("saved_file.pgm");
+    /// ```
+    pub fn new(file_name: &str) -> PGMDecoder {
+        let file = File::open(file_name).unwrap();
+        PGMDecoder{f : file}
+    }
+
+    /// Loads a pgm file.
+    ///
+    /// Will load a pgm file that's in either ASCII or binary format. The file extension does not
+    /// matter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::fs;
+    /// # use std::fs::File;
+    /// # use std::io::prelude::*;
+    /// use netbpm::pgm::PGMDecoder;
+    /// use netbpm::Image;
+    ///
+    /// # let mut file = File::create("image.pgm").unwrap();
+    /// # let _ = file.write(b"P2\n2 2\n255\n0 255\n255 0");
+    /// let mut decoder = PGMDecoder::new("image.pgm");
+    /// let image = decoder.load().unwrap();
+    /// # let _ = fs::remove_file("image.pgm");
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// This method will return all general file IO errors that can be raised by file read
+    /// operations. Additionally, it will return an error if the image type is not pgm as well
+    /// as all file header parsing errors.
+    pub fn load(&mut self) ->  Result<Image, io::Error> {
+        let mut all_data:Vec<u8> = vec![];
+        try!(self.f.read_to_end(&mut all_data));
+        let header = try!(get_header(&all_data));
+
+        // check the magic number.
+        if header.image_type != ImageType::PGM {
+            return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Input file is not a pgm file."));
+        }
+
+        match header.mode {
+            Mode::ASCII => Ok(Image{width:header.width, height:header.height,
+                           dat:self.load_ascii(&all_data[header.dat_start..all_data.len()], &header.depth),
+                           depth: header.depth}),
+            // unlike with the pbm file format we can take raw binary data with no processing.
+            Mode::BINARY => Ok(Image{width:header.width, height:header.height,
+                           dat:all_data[header.dat_start..all_data.len()].to_vec(),
+                           depth: header.depth})
+        }
+
+    }
+
+    /// Load image data stored in ASCII format.
+    fn load_ascii(&self, inpt: &[u8], depth: &BitDepth) -> Vec<u8> {
+        let mut vals:Vec<u8> = vec![];
+        let mut num:u16 = 0;
+        for x in inpt{
+            if *x > 47 && *x < 58 {
+                num = (num * 10) + (*x - 48) as u16;
+            } else {
+                if *depth == BitDepth::EIGHT {
+                    vals.push(num as u8);
+                } else {
+                    vals.push((num >> 8) as u8);  // most significant byte first.
+                    vals.push((num & 255) as u8); // least significant byte second.
+                }
+                num = 0;
+            }
+        }
+        vals
     }
 }
