@@ -1,4 +1,4 @@
-//! A module to provide for saving and loading images in the Portable BitMap format.
+//! Provides features for saving and loading images in the Portable BitMap format.
 //!
 //! The pbm (Portable BitMap) format is black and white only and all pixels are either 0 or 1.
 //!
@@ -67,7 +67,7 @@ impl PBMEncoder {
     /// use netbpm::pbm::PBMEncoder;
     /// use netbpm::Mode;
     ///
-    /// // This will save a pbm file in the form of a J and in an ASCII format.
+    /// // This will save an image of a `J` in an ascii pbm file
     /// const data:[u8;60] = [0,0,0,0,1,0,
     ///                       0,0,0,0,1,0,
     ///                       0,0,0,0,1,0,
@@ -78,6 +78,7 @@ impl PBMEncoder {
     ///                       0,1,1,1,0,0,
     ///                       0,0,0,0,0,0,
     ///                       0,0,0,0,0,0];
+    /// 
     /// let mut encoder = PBMEncoder::new("test_file.pbm");
     /// encoder.save(&data, 6, 10, Mode::ASCII).unwrap();
     /// ```

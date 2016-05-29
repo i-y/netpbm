@@ -1,3 +1,25 @@
+//! Provides features for saving and loading images in the Portable GrayMap format.
+//!
+//! The pgm (Portable GrayMap) format is gray scale and can be either 8 bits or 16 bits. This
+//! allows a resolution between 0-255 or 0-65535. The standard allows for arbitrary bit depths
+//! within the bounds 8 or 16 bit unsigned integers but this implementation does not do so.
+//!
+//! # Examples
+//!
+//! ```
+//! # use std::fs;
+//! use netbpm::pgm::{PGMEncoder,PGMDecoder};
+//! use netbpm::{Mode,Image,BitDepth};
+//!
+//! let dat:[u8;4] = [0,255,255,0];
+//! let mut encoder = PGMEncoder::new("test_file.pgm");
+//! encoder.save(&dat, 2, 2, Mode::ASCII, BitDepth::EIGHT).unwrap();
+//!
+//! let mut decoder = PGMDecoder::new("test_file.pgm");
+//! let image = decoder.load().unwrap();
+//! # let _ = fs::remove_file("test_file.pgm");
+//! ```
+
 use std::io;
 use std::fs::File;
 use std::io::prelude::*;
@@ -37,6 +59,41 @@ impl PGMEncoder {
         PGMEncoder{f : file}
     }
 
+    /// Saves image data to the file stored by the `PGMEncoder`.
+    ///
+    /// This method will record image data to the file. It takes a slice with the data as bytes,
+    /// the width, the height, the `Mode`, and the `BitDepth`. The variable bit depth means that
+    /// the maximum value is either 255 or 65,535. Note that in this format 0 is black and the max
+    /// value allowed by the bit depth is white.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use netbpm::pgm::PGMEncoder;
+    /// use netbpm::{Mode,BitDepth};
+    ///
+    /// // This will save an image of a `J` in an eight-bit, ascii pgm file
+    /// const data:[u8;60] = [255,255,255,255,0,255,
+    ///                       255,255,255,255,0,255,
+    ///                       255,255,255,255,0,255,
+    ///                       255,255,255,255,0,255,
+    ///                       255,255,255,255,0,255,
+    ///                       255,255,255,255,0,255,
+    ///                       0,255,255,255,0,255,
+    ///                       255,0,0,0,255,255,
+    ///                       255,255,255,255,255,255,
+    ///                       255,255,255,255,255,255];
+    ///
+    /// let mut encoder = PGMEncoder::new("test_file.pgm");
+    /// encoder.save(&data, 6, 10, Mode::ASCII, BitDepth::EIGHT).unwrap();
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Aside from the regular errors associated with file access this function will throw an
+    /// error if the user attempts to save an image more than 70 characters wide in ASCII mode.
+    /// Note that because it is characters and not pixels you will frequently only be able to save
+    /// fewer than 70 pixels, especially in 16-bit mode.
     pub fn save(&mut self, dat: &[u8], height: u32, width: u32, mode: Mode, depth: BitDepth) -> Result<(), io::Error> {
         Ok(
             match mode {
@@ -46,6 +103,13 @@ impl PGMEncoder {
         )
     }
 
+    /// Saves a pgm file in ascii format.
+    ///
+    /// This method saves the data in ascii format. This is a bit tricky as the ints needs to be
+    /// converted to strings while at the same time keeping track of the total number of characters
+    /// on the line to prevent more than 70 being saved.
+    ///
+    /// TODO: Double-check that we're not missing a default API call which would make this easier.
     fn save_ascii(&mut self, dat: &[u8], width: u32, height: u32, depth: BitDepth) -> Result<(), io::Error> {
         // In theory we can ignore this with no downside but it would no longer be conformant.
         if width > 70 {
@@ -89,6 +153,10 @@ impl PGMEncoder {
         Ok(())
     }
 
+    /// Save a pgm file in binary format.
+    ///
+    /// Saving in binary is much easier than in ascii as, after we construct the header, we can
+    /// just write the input data directly.
     fn save_binary(&mut self, dat: &[u8], width: u32, height: u32, depth: BitDepth) -> Result<(), io::Error> {
         // write the header
         try!(self.f.write_fmt(format_args!("P5\n{} {}\n",width,height)));
