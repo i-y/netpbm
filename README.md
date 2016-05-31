@@ -16,10 +16,10 @@ project file formats in Rust.
 
 * Portable BitMap (pbm) files.
 * Portable GrayMap (pgm) files.
+* Portable PixMap (ppm) files.
 
 # Features To Be Implemented
 
-* Portable PixMap (ppm) files.
 * Portable Arbitrary Map (pam) files.
 
 # Intentionally Non-Conformant Features

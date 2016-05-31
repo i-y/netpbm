@@ -23,3 +23,4 @@ mod header_tests;
 
 pub mod pbm;
 pub mod pgm;
+pub mod ppm;

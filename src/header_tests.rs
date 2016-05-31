@@ -24,16 +24,6 @@ fn invalid_magic_number_two() {
 }
 
 #[test]
-fn invalid_magic_number_unsupported_file_type() {
-    let dat:Vec<u8> = vec![b'P', b'6'];
-    let header = get_header(&dat);
-    match header {
-        Ok(_) => assert!(false),
-        Err(e) => assert_eq!(e.description(),"Input file is an unsupported netbpm type."),
-    }
-}
-
-#[test]
 fn read_header_bad_char() {
     let dat:Vec<u8> = vec![b'P', b'1', 10, b'6', b'?', b' ', b'1', b'0', 10];
     let header = get_header(&dat);
@@ -183,6 +173,66 @@ fn read_pgm_header_ascii_eight_commented() {
     assert_eq!(header.height, 10);
     assert_eq!(header.dat_start, 21);
     assert_eq!(header.image_type, ImageType::PGM);
+    assert_eq!(header.depth, BitDepth::EIGHT);
+    assert_eq!(header.mode, Mode::ASCII);
+}
+
+#[test]
+fn read_ppm_header_ascii_eight() {
+    let dat:Vec<u8> = vec![b'P', b'3', 10, b'6', b' ', b'1', b'0', 10, b'2', b'5', b'5', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 12);
+    assert_eq!(header.image_type, ImageType::PPM);
+    assert_eq!(header.depth, BitDepth::EIGHT);
+    assert_eq!(header.mode, Mode::ASCII);
+}
+
+#[test]
+fn read_ppm_header_binary_eight() {
+    let dat:Vec<u8> = vec![b'P', b'6', 10, b'6', b' ', b'1', b'0', 10, b'2', b'5', b'5', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 12);
+    assert_eq!(header.image_type, ImageType::PPM);
+    assert_eq!(header.depth, BitDepth::EIGHT);
+    assert_eq!(header.mode, Mode::BINARY);
+}
+
+#[test]
+fn read_ppm_header_ascii_sixteen() {
+    let dat:Vec<u8> = vec![b'P', b'3', 10, b'6', b' ', b'1', b'0', 10, b'2', b'5', b'6', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 12);
+    assert_eq!(header.image_type, ImageType::PPM);
+    assert_eq!(header.depth, BitDepth::SIXTEEN);
+    assert_eq!(header.mode, Mode::ASCII);
+}
+
+#[test]
+fn read_ppm_header_binary_sixteen() {
+    let dat:Vec<u8> = vec![b'P', b'6', 10, b'6', b' ', b'1', b'0', 10, b'1', b'0', b'5', b'0', b'0', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 14);
+    assert_eq!(header.image_type, ImageType::PPM);
+    assert_eq!(header.depth, BitDepth::SIXTEEN);
+    assert_eq!(header.mode, Mode::BINARY);
+}
+
+#[test]
+fn read_ppm_header_ascii_eight_commented() {
+    let dat:Vec<u8> = vec![b'P', b'3', 10, b'6', b' ', b'1', b'0', 10, b'#', b'C', b'o', b'm', b'm', b'e', b'n', b't', 10, b'2', b'5', b'5', 10];
+    let header = get_header(&dat).unwrap();
+    assert_eq!(header.width, 6);
+    assert_eq!(header.height, 10);
+    assert_eq!(header.dat_start, 21);
+    assert_eq!(header.image_type, ImageType::PPM);
     assert_eq!(header.depth, BitDepth::EIGHT);
     assert_eq!(header.mode, Mode::ASCII);
 }

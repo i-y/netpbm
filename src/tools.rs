@@ -15,6 +15,7 @@ pub struct ImageHeader {
 pub enum ImageType {
     PBM,
     PGM,
+    PPM,
 }
 
 /// Finds if the character is a whitespace
@@ -46,8 +47,10 @@ pub fn get_header(dat:&Vec<u8>) ->  Result<ImageHeader, io::Error> {
     let image_type = match dat[1] {
         49 => ImageType::PBM,
         50 => ImageType::PGM,
+        51 => ImageType::PPM,
         52 => ImageType::PBM,
         53 => ImageType::PGM,
+        54 => ImageType::PPM,
         _ => return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Input file is an unsupported netbpm type.")),
     };
 
@@ -89,7 +92,7 @@ pub fn get_header(dat:&Vec<u8>) ->  Result<ImageHeader, io::Error> {
                 // check to see if we've finished reading the header
                 if image_type == ImageType::PBM && header_part > 1 {
                     break;
-                } else if image_type == ImageType::PGM && header_part > 2 {
+                } else if (image_type == ImageType::PGM || image_type == ImageType::PPM) && header_part > 2 {
                     break;
                 }
             } else { // a non-numeric, non-whitespace character outside of a comment is an error.

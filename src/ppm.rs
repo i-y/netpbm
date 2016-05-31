@@ -1,25 +1,3 @@
-//! Provides features for saving and loading images in the Portable GrayMap format.
-//!
-//! The pgm (Portable GrayMap) format is gray scale and can be either 8 bits or 16 bits. This
-//! allows a resolution between 0-255 or 0-65535. The standard allows for arbitrary bit depths
-//! within the bounds 8 or 16 bit unsigned integers but this implementation does not do so.
-//!
-//! # Examples
-//!
-//! ```
-//! # use std::fs;
-//! use netbpm::pgm::{PGMEncoder,PGMDecoder};
-//! use netbpm::{Mode,Image,BitDepth};
-//!
-//! let dat:[u8;4] = [0,255,255,0];
-//! let mut encoder = PGMEncoder::new("test_file.pgm");
-//! encoder.save(&dat, 2, 2, Mode::ASCII, BitDepth::EIGHT).unwrap();
-//!
-//! let mut decoder = PGMDecoder::new("test_file.pgm");
-//! let image = decoder.load().unwrap();
-//! # let _ = fs::remove_file("test_file.pgm");
-//! ```
-
 use std::io;
 use std::fs::File;
 use std::io::prelude::*;
@@ -28,38 +6,37 @@ use Mode;
 use Image;
 use BitDepth;
 
-
-/// Encodes an image as a pgm file.
-pub struct PGMEncoder {
+/// Encodes an image as a ppm file.
+pub struct PPMEncoder {
     f: File,
 }
 
 /// Decodes an image in the pgm format.
-pub struct PGMDecoder {
+pub struct PPMDecoder {
     f: File,
 }
 
-impl PGMEncoder {
-    /// Create a new `PGMEncoder`
+impl PPMEncoder {
+    /// Create a new `PPMEncoder`
     ///
-    /// Creates a new `PGMEncoder` by creating a file with the specified name. The file extension
-    /// is not important for using this module to encode/decode pgm images.
+    /// Creates a new `PPMEncoder` by creating a file with the specified name. The file extension
+    /// is not important for using this module to encode/decode ppm images.
     ///
     /// # Examples
     ///
     /// ```
     ///  # use std::fs;
-    /// use netbpm::pgm::PGMEncoder;
+    /// use netbpm::ppm::PPMEncoder;
     ///
-    /// let encoder = PGMEncoder::new("pgm_file.pgm");
-    /// # let _ = fs::remove_file("pgm_file.pgm");
+    /// let encoder = PPMEncoder::new("ppm_file.ppm");
+    /// # let _ = fs::remove_file("ppm_file.ppm");
     /// ```
-    pub fn new(file_name: &str) -> PGMEncoder {
+    pub fn new(file_name: &str) -> PPMEncoder {
         let file = File::create(file_name).unwrap();
-        PGMEncoder{f : file}
+        PPMEncoder{f : file}
     }
 
-    /// Saves image data to the file stored by the `PGMEncoder`.
+    /// Saves image data to the file stored by the `PPMEncoder`.
     ///
     /// This method will record image data to the file. It takes a slice with the data as bytes,
     /// the width, the height, the `Mode`, and the `BitDepth`. The variable bit depth means that
@@ -69,23 +46,25 @@ impl PGMEncoder {
     /// # Examples
     ///
     /// ```
-    /// use netbpm::pgm::PGMEncoder;
+    /// # use std::fs;
+    /// use netbpm::ppm::PPMEncoder;
     /// use netbpm::{Mode,BitDepth};
     ///
-    /// // This will save an image of a `J` in an eight-bit, ascii pgm file
-    /// const data:[u8;60] = [255,255,255,255,0,255,
-    ///                       255,255,255,255,0,255,
-    ///                       255,255,255,255,0,255,
-    ///                       255,255,255,255,0,255,
-    ///                       255,255,255,255,0,255,
-    ///                       255,255,255,255,0,255,
-    ///                       0,255,255,255,0,255,
-    ///                       255,0,0,0,255,255,
-    ///                       255,255,255,255,255,255,
-    ///                       255,255,255,255,255,255];
+    /// // This will save an image of a `J` in an eight-bit, ascii ppm file
+    /// const data:[u8;180] = [255,255,255,   255,255,255,   255,255,255,   255,255,255,   0,0,0,   255,255,255,
+    ///                        255,255,255,   255,255,255,   255,255,255,   255,255,255,   0,0,0,   255,255,255,
+    ///                        255,255,255,   255,255,255,   255,255,255,   255,255,255,   0,0,0,   255,255,255,
+    ///                        255,255,255,   255,255,255,   255,255,255,   255,255,255,   0,0,0,   255,255,255,
+    ///                        255,255,255,   255,255,255,   255,255,255,   255,255,255,   0,0,0,   255,255,255,
+    ///                        255,255,255,   255,255,255,   255,255,255,   255,255,255,   0,0,0,   255,255,255,
+    ///                        0,0,0,         255,255,255,   255,255,255,   255,255,255,   0,0,0,   255,255,255,
+    ///                        255,255,255,   0,0,0,         0,0,0,         0,0,0,         255,255,255,  255,255,255,
+    ///                        255,255,255,   255,255,255,   255,255,255,   255,255,255,   255,255,255,  255,255,255,
+    ///                        255,255,255,   255,255,255,   255,255,255,   255,255,255,   255,255,255,  255,255,255];
     ///
-    /// let mut encoder = PGMEncoder::new("test_file.pgm");
+    /// let mut encoder = PPMEncoder::new("test_file.ppm");
     /// encoder.save(&data, 6, 10, Mode::ASCII, BitDepth::EIGHT).unwrap();
+    /// # let _ = fs::remove_file("test_file.ppm");
     /// ```
     ///
     /// # Errors
@@ -103,7 +82,7 @@ impl PGMEncoder {
         )
     }
 
-    /// Saves a pgm file in ascii format.
+    /// Saves a ppm file in ascii format.
     ///
     /// This method saves the data in ascii format. This is a bit tricky as the ints needs to be
     /// converted to strings while at the same time keeping track of the total number of characters
@@ -116,7 +95,7 @@ impl PGMEncoder {
             return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Width can not be greater than 70 for ascii pgm files."));
         }
         // write the header information.
-        try!(self.f.write_fmt(format_args!("P2\n{} {}\n",width,height)));
+        try!(self.f.write_fmt(format_args!("P3\n{} {}\n",width,height)));
         match depth {
             BitDepth::EIGHT => try!(self.f.write_all(b"255\n")),
             BitDepth::SIXTEEN => try!(self.f.write_all(b"65535\n")),
@@ -128,21 +107,21 @@ impl PGMEncoder {
         let mut counter = 0;
         // write the actual image data.
         for i in 0..height {
-            for j in 0..width {
+            for j in 0..(width * 3) {
                 let val:u16 = match depth {
-                    BitDepth::EIGHT => dat[((i * width) + j) as usize] as u16,
+                    BitDepth::EIGHT => dat[((i * (width * 3)) + j) as usize] as u16,
                     BitDepth::SIXTEEN => {
-                        let ind:usize = (((i * width) + j) * 2) as usize;
+                        let ind:usize = (((i * (width * 3)) + j) * 2) as usize;
                         ((dat[ind] as u16) << 8) + dat[ind] as u16
                     },
                 };
                 let v = val.to_string();
                 counter = counter + v.len();
                 if counter > 70 {
-                    return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Width can not be greater than 70 characters for ascii pgm files."));
+                    return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Width can not be greater than 70 characters for ascii ppm files."));
                 }
                 try!(self.f.write_all(&v.into_bytes()));
-                if j < width-1 {
+                if j < (width * 3)-1 {
                     try!(self.f.write_all(b" "));
                 }
             }
@@ -153,13 +132,13 @@ impl PGMEncoder {
         Ok(())
     }
 
-    /// Save a pgm file in binary format.
+    /// Save a ppm file in binary format.
     ///
     /// Saving in binary is much easier than in ascii as, after we construct the header, we can
     /// just write the input data directly.
     fn save_binary(&mut self, dat: &[u8], width: u32, height: u32, depth: BitDepth) -> Result<(), io::Error> {
         // write the header
-        try!(self.f.write_fmt(format_args!("P5\n{} {}\n",width,height)));
+        try!(self.f.write_fmt(format_args!("P6\n{} {}\n",width,height)));
         match depth {
             BitDepth::EIGHT => try!(self.f.write_all(b"255\n")),
             BitDepth::SIXTEEN => try!(self.f.write_all(b"65535\n")),
@@ -170,10 +149,10 @@ impl PGMEncoder {
     }
 }
 
-impl PGMDecoder {
-    /// Create a new `PGMDecoder`
+impl PPMDecoder {
+    /// Create a new `PPMDecoder`
     ///
-    /// Creates a new `PGMDecoder` that reads from the specified file. The file extension does not
+    /// Creates a new `PPMDecoder` that reads from the specified file. The file extension does not
     /// matter.
     ///
     /// # Examples
@@ -181,20 +160,20 @@ impl PGMDecoder {
     /// ```
     /// # use std::fs;
     /// # use std::fs::File;
-    /// use netbpm::pgm::PGMDecoder;
+    /// use netbpm::ppm::PPMDecoder;
     ///
-    /// # let _ = File::create("saved_file.pgm");
-    /// let decoder = PGMDecoder::new("saved_file.pgm");
-    ///  # let _ = fs::remove_file("saved_file.pgm");
+    /// # let _ = File::create("saved_file.ppm");
+    /// let decoder = PPMDecoder::new("saved_file.ppm");
+    ///  # let _ = fs::remove_file("saved_file.ppm");
     /// ```
-    pub fn new(file_name: &str) -> PGMDecoder {
+    pub fn new(file_name: &str) -> PPMDecoder {
         let file = File::open(file_name).unwrap();
-        PGMDecoder{f : file}
+        PPMDecoder{f : file}
     }
 
-    /// Loads a pgm file.
+    /// Loads a ppm file.
     ///
-    /// Will load a pgm file that's in either ASCII or binary format. The file extension does not
+    /// Will load a ppm file that's in either ASCII or binary format. The file extension does not
     /// matter.
     ///
     /// # Examples
@@ -203,20 +182,20 @@ impl PGMDecoder {
     /// # use std::fs;
     /// # use std::fs::File;
     /// # use std::io::prelude::*;
-    /// use netbpm::pgm::PGMDecoder;
+    /// use netbpm::ppm::PPMDecoder;
     /// use netbpm::Image;
     ///
-    /// # let mut file = File::create("image.pgm").unwrap();
-    /// # let _ = file.write(b"P2\n2 2\n255\n0 255\n255 0");
-    /// let mut decoder = PGMDecoder::new("image.pgm");
+    /// # let mut file = File::create("image.ppm").unwrap();
+    /// # let _ = file.write(b"P3\n2 2\n255\n0 0 0 255 255 255\n255 255 255 0 0 0");
+    /// let mut decoder = PPMDecoder::new("image.ppm");
     /// let image = decoder.load().unwrap();
-    /// # let _ = fs::remove_file("image.pgm");
+    /// # let _ = fs::remove_file("image.ppm");
     /// ```
     ///
     /// # Errors
     ///
     /// This method will return all general file IO errors that can be raised by file read
-    /// operations. Additionally, it will return an error if the image type is not pgm as well
+    /// operations. Additionally, it will return an error if the image type is not ppm as well
     /// as all file header parsing errors.
     pub fn load(&mut self) ->  Result<Image, io::Error> {
         let mut all_data:Vec<u8> = vec![];
@@ -224,8 +203,8 @@ impl PGMDecoder {
         let header = try!(get_header(&all_data));
 
         // check the magic number.
-        if header.image_type != ImageType::PGM {
-            return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Input file is not a pgm file."));
+        if header.image_type != ImageType::PPM {
+            return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Input file is not a ppm file."));
         }
 
         match header.mode {
