@@ -1,61 +1,26 @@
 use std::io;
-use WordSize;
+use tools::{is_whitespace,is_number};
+use pnm::pbm;
+use Image;
 use ImageType;
 use Mode;
-use Image;
-
-/*pub struct ImageHeader {
-    pub width:u32,
-    pub height:u32,
-    pub dat_start:usize,
-    pub image_type: ImageType,
-    pub depth: BitDepth,
-    pub mode: Mode,
-}
+use WordSize;
 
 #[derive(PartialEq, Eq, Debug)]
-enum ImageFormat {
-    LEGACY,
-    PAM,
-}*/
-
-/// Finds if the character is a whitespace
-///
-/// White spaces are blanks, TABs, CRs, and LFs
-pub fn is_whitespace(inpt: u8) -> bool {
-    inpt == 9 || inpt == 10 || inpt == 13 || inpt == 32
+enum Format {
+    PBM,
+    PGM,
+    PPM,
 }
 
-/// Finds if the character is a number.
-pub fn is_number(inpt: u8) -> bool {
-    inpt > 47 && inpt < 58
-}
-
-/// Reads the header from an input data stream.
-///
-/// Parses the input data to try to get the image size, file type, and bit depth. The file formats
-/// contain a magic number, height and width, optional comments, and bit depth depending on the
-/// file. These are seperated by whitespace aside from comments, which are only ended with a
-/// newline.
-pub fn get_header(dat:&Vec<u8>) ->  Result<Image, io::Error> {
-
-    // Test that the magic number is valid
-    if dat[0] != 80 ||  dat[1] < 49 || dat[1] > 55 {
-        return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Input file is not a netbpm file."));
-    }
-
-
-
-    Ok(Image::new())
-
-    // What file format does the magic number say we have
-    /*let image_type = match dat[1] {
-        b'1' => ImageType::PBM,
-        b'2' => ImageType::PGM,
-        b'3' => ImageType::PPM,
-        b'4' => ImageType::PBM,
-        b'5' => ImageType::PGM,
-        b'6' => ImageType::PPM,
+pub fn decode(dat:&Vec<u8>) -> Result<Image, io::Error> {
+    let format = match dat[1] {
+        b'1' => Format::PBM,
+        b'2' => Format::PGM,
+        b'3' => Format::PPM,
+        b'4' => Format::PBM,
+        b'5' => Format::PGM,
+        b'6' => Format::PPM,
         _ => return Result::Err(io::Error::new(io::ErrorKind::InvalidInput, "Input file is an unsupported netbpm type.")),
     };
 
@@ -95,9 +60,9 @@ pub fn get_header(dat:&Vec<u8>) ->  Result<Image, io::Error> {
             } else if is_whitespace(dat[i]) { // witespace triggers a new part of the header
                 header_part += 1;
                 // check to see if we've finished reading the header
-                if image_type == ImageType::PBM && header_part > 1 {
+                if format == Format::PBM && header_part > 1 {
                     break;
-                } else if (image_type == ImageType::PGM || image_type == ImageType::PPM) && header_part > 2 {
+                } else if (format == Format::PGM || format == Format::PPM) && header_part > 2 {
                     break;
                 }
             } else { // a non-numeric, non-whitespace character outside of a comment is an error.
@@ -110,11 +75,31 @@ pub fn get_header(dat:&Vec<u8>) ->  Result<Image, io::Error> {
     // two to discard the white space following the end of the header.
     data_start += 2;
 
-    let bits = if bit_size > 255 {
-        BitDepth::SIXTEEN
+    let word_size = if bit_size > 255 {
+        WordSize::SIXTEEN
     } else {
-        BitDepth::EIGHT
+        WordSize::EIGHT
     };
 
-    Ok(ImageHeader{width:width, height:height, dat_start:data_start, image_type:image_type, depth:bits, mode:image_mode})*/
+    let final_dat = if format == Format::PBM {
+        if image_mode == Mode::ASCII {
+            pbm::load_ascii(&dat[data_start..dat.len()])
+        } else {
+            pbm::load_binary(&dat[data_start..dat.len()],width)
+        }
+    } else {
+        if image_mode == Mode::ASCII {
+            vec![]
+        } else {
+            dat[data_start..dat.len()].to_vec()
+        }
+    };
+
+    let (image_type,image_depth) = match format {
+        Format::PBM => (ImageType::BLACKANDWHITE,1),
+        Format::PGM => (ImageType::GRAYSCALE,2),
+        Format::PPM => (ImageType::RGB,3),
+    };
+
+    Ok(Image {width:width, height:height, image_type:image_type, depth:image_depth, word_size:word_size, data:final_dat})
 }
